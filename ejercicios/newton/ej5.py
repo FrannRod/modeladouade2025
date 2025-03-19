@@ -12,7 +12,7 @@ def derivada(x):
     return e**x + 2*x
 
 x0 = 0.5
-tolerancia = 1e-6
+tolerancia = 1e-8
 print(f"\nMétodo de Newton-Raphson:")
 resultado, iteraciones = newtonRaphson(funcion, derivada, x0, tolerancia)
 print(f"\nResultado: {resultado}")
