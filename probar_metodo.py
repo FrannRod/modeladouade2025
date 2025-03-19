@@ -16,15 +16,12 @@ def main():
     if metodo == 'b':
         rangoA = float(input("Ingrese el inicio del rango: "))
         rangoB = float(input("Ingrese el fin del rango: "))
-        resultado, iteraciones = binario(funcion, rangoA, rangoB, tolerancia)
         print(f"\nMétodo Binario:")
+        resultado, iteraciones = binario(funcion, rangoA, rangoB, tolerancia)
     else:
         x0 = float(input("Ingrese el valor inicial x0: "))
-        resultado, iteraciones = puntoFijo(funcion, x0, tolerancia)
         print(f"\nMétodo Punto Fijo:")
+        resultado, iteraciones = puntoFijo(funcion, x0, tolerancia)
         
-    print(f"Resultado: {resultado}")
-    print(f"Iteraciones: {iteraciones}")
-
 if __name__ == "__main__":
     main() 

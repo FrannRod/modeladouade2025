@@ -11,8 +11,6 @@ def main():
     tolerancia = 1e-6
     print(f"\nMétodo Punto Fijo:")
     resultado, iteraciones = puntoFijo(funcion, x0, tolerancia)
-    print(f"Resultado: {resultado}")
-    print(f"Iteraciones: {iteraciones}")
 
 if __name__ == "__main__":
     main() 
