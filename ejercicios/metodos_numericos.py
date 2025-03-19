@@ -19,17 +19,18 @@ def imprimir_tabla(resultados, encabezados):
 def binario(funcion, rangoA, rangoB, tolerancia):
     iteracion = 0
     resultados = []
-    while abs(rangoA - rangoB) > tolerancia:
+    while True:
         iteracion += 1
         puntoMedio = (rangoA+rangoB)/2
         resultado = funcion(puntoMedio)
-        positivo = resultado > 0
+        if resultado <= tolerancia:
+            break
+        positivo = (resultado * funcion(rangoA)) > 0
         resultados.append((iteracion, rangoA, rangoB, puntoMedio, resultado))
         if positivo:
             rangoB = puntoMedio
         else:
             rangoA = puntoMedio
-            
     encabezados = ["Iteración", "Rango A", "Rango B", "Punto Medio", "f(Punto Medio)"]
     imprimir_tabla(resultados, encabezados)
     
