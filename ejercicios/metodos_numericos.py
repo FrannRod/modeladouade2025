@@ -3,7 +3,7 @@ def imprimir_tabla(resultados, encabezados):
     anchos = [len(h) for h in encabezados]
     for r in resultados:
         for i, valor in enumerate(r):
-            anchos[i] = max(anchos[i], len(f"{valor:.10f}" if isinstance(valor, float) else str(valor)))
+            anchos[i] = max(anchos[i], len(str(valor)))
     
     # Imprimir encabezado
     print("\n" + " | ".join(h.ljust(anchos[i]) for i, h in enumerate(encabezados)))
@@ -12,7 +12,7 @@ def imprimir_tabla(resultados, encabezados):
     # Imprimir resultados
     for r in resultados:
         print(" | ".join(
-            (f"{valor:.10f}" if isinstance(valor, float) else str(valor)).ljust(anchos[i])
+            str(valor).ljust(anchos[i])
             for i, valor in enumerate(r)
         ))
 
