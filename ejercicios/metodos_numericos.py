@@ -100,9 +100,9 @@ def newtonRaphson(funcion, derivada, x, tolerancia):
     
     while abs(fx) > tolerancia:
         iteracion += 1
-        fx = funcion(x)
-        derivadaX = derivada(x)
         x_nuevo = x - fx/derivadaX
+        fx = funcion(x_nuevo)
+        derivadaX = derivada(x_nuevo)
         error_absoluto = abs(x_nuevo - x)  # Calculamos el error absoluto
         error_relativo = abs(error_absoluto / x_nuevo) if x_nuevo != 0 else "-"  # Error relativo
         resultados.append((iteracion, x_nuevo, fx, derivadaX, error_absoluto, error_relativo))
