@@ -1,9 +1,15 @@
 def imprimir_tabla(resultados, encabezados):
-    # Encontrar el ancho máximo para cada columna
-    anchos = [len(h) for h in encabezados]
-    for r in resultados:
-        for i, valor in enumerate(r):
-            anchos[i] = max(anchos[i], len(str(valor)))
+    # Ancho fijo para cada tipo de columna
+    ANCHO_ITERACION = 9
+    ANCHO_NUMERICO = 20
+    
+    # Asignar anchos según el tipo de columna
+    anchos = []
+    for h in encabezados:
+        if h == "Iteración":
+            anchos.append(ANCHO_ITERACION)
+        else:
+            anchos.append(ANCHO_NUMERICO)
     
     # Imprimir encabezado
     print("\n" + " | ".join(h.ljust(anchos[i]) for i, h in enumerate(encabezados)))
@@ -11,10 +17,15 @@ def imprimir_tabla(resultados, encabezados):
     
     # Imprimir resultados
     for r in resultados:
-        print(" | ".join(
-            str(valor).ljust(anchos[i])
-            for i, valor in enumerate(r)
-        ))
+        fila = []
+        for i, valor in enumerate(r):
+            if i == 0:  # Iteración
+                fila.append(str(valor).ljust(anchos[i]))
+            elif valor == "-":
+                fila.append(str(valor).center(anchos[i]))
+            else:  # Valores numéricos
+                fila.append(format(valor, '.16f').ljust(anchos[i]))
+        print(" | ".join(fila))
 
 def binario(funcion, rangoA, rangoB, tolerancia):
     iteracion = 0
