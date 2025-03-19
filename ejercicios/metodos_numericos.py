@@ -23,6 +23,11 @@ def binario(funcion, rangoA, rangoB, tolerancia):
     fa = funcion(rangoA)
     fb = funcion(rangoB)
     
+    # Agregar iteración 0
+    puntoMedio = (rangoA + rangoB)/2
+    resultado = funcion(puntoMedio)
+    resultados.append((iteracion, rangoA, rangoB, puntoMedio, resultado))
+    
     if abs(fa) <= tolerancia:
         return rangoA, 0
     if abs(fb) <= tolerancia:
@@ -54,6 +59,12 @@ def binario(funcion, rangoA, rangoB, tolerancia):
 def puntoFijo(funcion, x, tolerancia):
     iteracion = 0
     resultados = []
+    
+    # Agregar iteración 0
+    fx = funcion(x)
+    diferencia = abs(x - fx)
+    resultados.append((iteracion, x, fx, diferencia))
+    
     while abs(x - funcion(x)) > tolerancia:
         iteracion += 1
         fx = funcion(x)
@@ -65,3 +76,23 @@ def puntoFijo(funcion, x, tolerancia):
     imprimir_tabla(resultados, encabezados)
     
     return x, iteracion 
+
+def newtonRaphson(funcion, derivada, x, tolerancia):
+    iteracion = 0
+    resultados = []
+    
+    # Agregar iteración 0
+    fx = funcion(x)
+    derivadaX = derivada(x)
+    resultados.append((iteracion, x, fx, derivadaX))
+    
+    while abs(fx) > tolerancia:
+        iteracion += 1
+        fx = funcion(x)
+        derivadaX = derivada(x)
+        x = x - fx/derivadaX
+        resultados.append((iteracion, x, fx, derivadaX))
+        
+    encabezados = ["Iteración", "x", "f(x)", "f'(x)"]
+    imprimir_tabla(resultados, encabezados)
+    return x, iteracion
