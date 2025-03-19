@@ -16,4 +16,8 @@ print(f"\nMétodo de Newton-Raphson:")
 resultado, iteraciones = newtonRaphson(funcion, derivada, x0, tolerancia)
 print(f"\nResultado: {resultado}")
 print(f"Iteraciones: {iteraciones}")
-
+x0 = 1.5
+print(f"\nMétodo de Newton-Raphson:")
+resultado, iteraciones = newtonRaphson(funcion, derivada, x0, tolerancia)
+print(f"\nResultado: {resultado}")
+print(f"Iteraciones: {iteraciones}")
