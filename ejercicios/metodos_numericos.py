@@ -84,15 +84,18 @@ def newtonRaphson(funcion, derivada, x, tolerancia):
     # Agregar iteración 0
     fx = funcion(x)
     derivadaX = derivada(x)
-    resultados.append((iteracion, x, fx, derivadaX))
+    resultados.append((iteracion, x, fx, derivadaX, "-"))  # Error inicial es 0
+    x_anterior = x
     
     while abs(fx) > tolerancia:
         iteracion += 1
         fx = funcion(x)
         derivadaX = derivada(x)
-        x = x - fx/derivadaX
-        resultados.append((iteracion, x, fx, derivadaX))
+        x_nuevo = x - fx/derivadaX
+        error = abs(x_nuevo - x)  # Calculamos el error
+        resultados.append((iteracion, x_nuevo, fx, derivadaX, error))
+        x = x_nuevo
         
-    encabezados = ["Iteración", "x", "f(x)", "f'(x)"]
+    encabezados = ["Iteración", "x", "f(x)", "f'(x)", "Error"]
     imprimir_tabla(resultados, encabezados)
     return x, iteracion
