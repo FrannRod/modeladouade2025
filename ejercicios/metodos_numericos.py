@@ -1,3 +1,5 @@
+# Excel: https://docs.google.com/spreadsheets/d/1rGGEn5q6vxpWB-VxgVrD6tpfbcpYYU5QQb94Eb6QJLY/edit?usp=sharing
+
 def imprimir_tabla(resultados, encabezados):
     # Ancho fijo para cada tipo de columna
     ANCHO_ITERACION = 9
