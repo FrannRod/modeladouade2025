@@ -113,3 +113,25 @@ def newtonRaphson(funcion, derivada, x, tolerancia):
     encabezados = ["Iteración", "x", "f(x)", "f'(x)", "Error Absoluto", "Error Relativo"]
     imprimir_tabla(resultados, encabezados)
     return x, iteracion
+
+def diferencias_divididas(puntos):
+    # Los puntos son una lista de tuplas (x, f(x))
+    # Asumo que el paso es constante
+    # La salida va a ser una lista de tuplas (x, f(x), f'(x), f''(x))
+    cantidad = len(puntos)
+    paso = puntos[1][0] - puntos[0][0]
+    salida = []
+    for i in range(cantidad):
+        derivada1 = 0
+        derivada2 = 0
+        if (i == 0):
+            derivada1 = (puntos[i+1][1] - puntos[i][1]) / paso
+            derivada2 = (puntos[i+2][1] - 2*puntos[i+1][1] + puntos[i][1]) / paso**2
+        elif (i == cantidad - 1):
+            derivada1 = (puntos[i][1] - puntos[i-1][1]) / paso
+            derivada2 = (puntos[i][1] - 2*puntos[i-1][1] + puntos[i-2][1]) / paso**2
+        else:
+            derivada1 = (puntos[i+1][1] - puntos[i-1][1]) / (2*paso)
+            derivada2 = (puntos[i+1][1] - 2*puntos[i][1] + puntos[i-1][1]) / paso**2
+        salida.append((puntos[i][0], puntos[i][1], derivada1, derivada2))
+    return salida
