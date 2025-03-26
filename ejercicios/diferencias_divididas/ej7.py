@@ -15,4 +15,4 @@ puntos = [
     (16,8.4)
 ]
 
-print(diferencias_divididas(puntos))
+diferencias_divididas(puntos)

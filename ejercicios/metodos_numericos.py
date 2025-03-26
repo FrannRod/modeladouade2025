@@ -120,6 +120,7 @@ def diferencias_divididas(puntos):
     # La salida va a ser una lista de tuplas (x, f(x), f'(x), f''(x))
     cantidad = len(puntos)
     paso = puntos[1][0] - puntos[0][0]
+    print(f"Paso: {paso}")
     salida = []
     for i in range(cantidad):
         derivada1 = 0
@@ -134,4 +135,6 @@ def diferencias_divididas(puntos):
             derivada1 = (puntos[i+1][1] - puntos[i-1][1]) / (2*paso)
             derivada2 = (puntos[i+1][1] - 2*puntos[i][1] + puntos[i-1][1]) / paso**2
         salida.append((puntos[i][0], puntos[i][1], derivada1, derivada2))
+    encabezados = ["x", "f(x)", "f'(x)", "f''(x)"]
+    imprimir_tabla(salida, encabezados)
     return salida
