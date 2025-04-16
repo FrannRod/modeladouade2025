@@ -21,11 +21,11 @@ np.random.seed(semilla)
  
 # Definir la función a evaluar
 def f(x):
-    return 1/(x*x+1)
+    return np.sin(x) / x
  
 # Número de puntos aleatorios
-a, b = 0, 1
-n = 5000
+a, b = 0, np.pi
+n = 10000
 confianza = 0.95
  
 # Generar números aleatorios en el intervalo [0, π]
