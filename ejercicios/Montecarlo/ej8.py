@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import dblquad
+from scipy.integrate import quad
 from scipy.stats import norm
-from mpl_toolkits.mplot3d import Axes3D
 
 def obtener_valor_z(confianza):
     """
@@ -17,27 +16,23 @@ def obtener_valor_z(confianza):
     return norm.ppf((1 + confianza) / 2)
 
 # Fijar la semilla para reproducibilidad
-semilla = 0
-np.random.seed(semilla)
+np.random.seed(0)
  
-# Definir la función a evaluar (función de dos variables)
-def f(x, y):
-    return x*x+y*y
+# Definir la función a evaluar
+def f(x):
+    return np.sin(x)
  
 # Número de puntos aleatorios
-n = 100000
+n = 10000
+ 
+# Generar números aleatorios en el intervalo [0, π]
+a, b = 0, np.pi
+datos = np.random.uniform(a, b, n)
+volumen = b - a
 confianza = 0.95
  
-# Definir los límites de integración
-x_min, x_max = 0, 1  # Límites para x
-y_min, y_max = 0, 1  # Límites para y
-volumen = (x_max - x_min) * (y_max - y_min)
-# Generar puntos aleatorios en el dominio de integración
-x = np.random.uniform(x_min, x_max, n)
-y = np.random.uniform(y_min, y_max, n)
- 
 # Evaluar los puntos en la función
-evaluados = f(x, y)
+evaluados = f(datos)
  
 # Calcular estadísticas sobre los valores evaluados
 media = np.mean(evaluados)
@@ -48,64 +43,75 @@ varianza = np.var(evaluados, ddof=1)
 z = obtener_valor_z(confianza)
  
 # Calcular la integral exacta para comparar
-integral_exacta, _ = dblquad(lambda y, x: f(x, y), x_min, x_max, lambda x: y_min, lambda x: y_max)
- 
-# Crear una figura con dos subplots: uno para el gráfico 3D y otro para la tabla
-fig = plt.figure(figsize=(18, 10))
+integral_exacta, _ = quad(f, a, b)
 
-# Gráfico 3D
-ax1 = fig.add_subplot(121, projection='3d')
-scatter = ax1.scatter(x, y, evaluados, c=evaluados, cmap='viridis', alpha=0.6, s=10)
-ax1.set_xlabel('X')
-ax1.set_ylabel('Y')
-ax1.set_zlabel('f(X,Y)')
+# Crear una figura con dos subplots: uno para el histograma y otro para la tabla
+fig = plt.figure(figsize=(14, 8))
+gs = fig.add_gridspec(1, 2, width_ratios=[1, 1])
+
+# Subplot para el histograma
+ax1 = fig.add_subplot(gs[0])
+ax1.hist(datos, bins=50, alpha=0.6, color='b', density=True)
 ax1.set_title("Distribución de los valores generados")
+ax1.set_xlabel("x")
+ax1.set_ylabel("Frecuencia")
 
-# Tabla de resultados
-ax2 = fig.add_subplot(122)
+# Subplot para la tabla de resultados
+ax2 = fig.add_subplot(gs[1])
 ax2.axis('off')  # Ocultar ejes
 
-# Crear los datos para la tabla
+# Datos para la tabla
 tabla_datos = [
-    ["Integral doble de f(x,y)", ""],
-    ["Semilla", f"{semilla}"],
-    [f"Límites para x", f"[{x_min}, {x_max}]"],
-    [f"Límites para y", f"[{y_min}, {y_max}]"],
-    [f"Volumen", f"{volumen:.6f}"],
-    [f"Muestras", f"{n}"],
-    [f"Confianza", f"{confianza:.2f}"],
-    [f"z", f"{z:.6f}"],
+    ["Integral de f(x)", ""],
+    ["Límite inferior a", f"{a}"],
+    ["Límite superior b", f"{b}"],
+    ["Muestras", f"{n}"],
+    ["Confianza", f"{confianza}"],
+    ["Valor z", f"{z:.4f}"],
     ["", ""],
-    [f"Media muestral", f"{media:.6f}"],
-    [f"Estimación por Monte Carlo", f"{integral:.6f}"],
-    [f"Valor exacto de la integral", f"{integral_exacta:.6f}"],
-    [f"Error absoluto", f"{abs(integral - integral_exacta):.6f}"],
-    [f"Desviación estándar", f"{desv_estandar:.6f}"],
-    [f"Varianza", f"{varianza:.6f}"],
-    [f"Error estándar", f"{error_estandar:.6f}"],
-    [f"Intervalo de confianza del {confianza*100}%", f"[{integral - z * error_estandar:.6f}, {integral + z * error_estandar:.6f}]"],
-    [f"Valor mínimo generado en x", f"{np.min(x):.6f}"],
-    [f"Valor máximo generado en x", f"{np.max(x):.6f}"],
-    [f"Valor mínimo generado en y", f"{np.min(y):.6f}"],
-    [f"Valor máximo generado en y", f"{np.max(y):.6f}"]
+    ["Media muestral", f"{media:.6f}"],
+    ["Estimación por Monte Carlo", f"{integral:.6f}"],
+    ["Valor exacto de la integral", f"{integral_exacta:.6f}"],
+    ["Error absoluto", f"{abs(integral - integral_exacta):.6f}"],
+    ["Desviación estándar", f"{desv_estandar:.6f}"],
+    ["Varianza", f"{varianza:.6f}"],
+    ["Error estándar", f"{error_estandar:.6f}"],
+    ["Intervalo de confianza del " + f"{confianza*100}%", f"[{integral - z * error_estandar:.6f}, {integral + z * error_estandar:.6f}]"],
+    ["Valor mínimo generado", f"{np.min(datos):.6f}"],
+    ["Valor máximo generado", f"{np.max(datos):.6f}"]
 ]
 
 # Crear la tabla
 tabla = ax2.table(
     cellText=tabla_datos,
-    cellLoc='left',
     loc='center',
+    cellLoc='left',
     colWidths=[0.5, 0.5]
 )
 
-# Ajustar el estilo de la tabla
+# Dar formato a la tabla
 tabla.auto_set_font_size(False)
 tabla.set_fontsize(10)
-tabla.scale(1.2, 1.5)
+tabla.scale(1, 1.5)  # Ajustar el tamaño de la tabla
 
-# Añadir un título a la tabla
-ax2.set_title("Resultados de la Integración por Monte Carlo", pad=20, fontsize=14)
+# Añadir una línea de separación después del encabezado
+for i in range(len(tabla_datos)):
+    if i == 6:  # Después de la fila de separación
+        for j in range(2):
+            celda = tabla[i, j]
+            celda.set_text_props(weight='bold')
+    elif i == 0:  # Título
+        for j in range(2):
+            celda = tabla[i, j]
+            celda.set_text_props(weight='bold')
 
-# Ajustar el layout y mostrar la figura
 plt.tight_layout()
 plt.show()
+
+# Valores de referencia para z según nivel de confianza
+# 99,5% = 2,807
+# 99% = 2,576
+# 97% = 2,968
+# 95% = 1,96
+# 90% = 1,645
+# 80% = 1,282
