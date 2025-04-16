@@ -21,17 +21,16 @@ np.random.seed(0)
  
 # Definir la función a evaluar (función de dos variables)
 def f(x, y):
-    return np.sin(x) * np.cos(y)
+    return np.exp(x + y)
  
 # Número de puntos aleatorios
-n = 10000
+n = 50000
  
 # Definir los límites de integración
-x_min, x_max = 0, np.pi  # Límites para x
-y_min, y_max = 0, np.pi/2  # Límites para y
+x_min, x_max = 0, 2  # Límites para x
+y_min, y_max = 1, 3  # Límites para y
 volumen = (x_max - x_min) * (y_max - y_min)
-confianza = 0.95
- 
+confianza = 0.90
 # Generar puntos aleatorios en el dominio de integración
 x = np.random.uniform(x_min, x_max, n)
 y = np.random.uniform(y_min, y_max, n)
@@ -65,6 +64,7 @@ print("=========================================================================
 print(f"Integral doble de f(x,y)")
 print(f"Límites para x: [{x_min}, {x_max}]")
 print(f"Límites para y: [{y_min}, {y_max}]")
+print(f"Volumen: {volumen}")
 print(f"Muestras: {n}")
 print(f"Confianza: {confianza}")
 print(f"z: {z}")
