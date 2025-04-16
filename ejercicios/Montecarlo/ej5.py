@@ -36,7 +36,7 @@ evaluados = f(datos)
  
 # Calcular estadísticas sobre los valores evaluados
 media = np.mean(evaluados)
-integral= media * volumen
+integral = media * volumen
 desv_estandar = np.std(evaluados, ddof=1)
 error_estandar = desv_estandar / np.sqrt(n)
 varianza = np.var(evaluados, ddof=1)
@@ -44,36 +44,71 @@ z = obtener_valor_z(confianza)
  
 # Calcular la integral exacta para comparar
 integral_exacta, _ = quad(f, a, b)
- 
-# Visualización de resultados
-plt.hist(datos, bins=50, alpha=0.6, color='b', density=True)
-plt.title("Distribución de los valores generados")
-plt.xlabel("x")
-plt.ylabel("Frecuencia")
+
+# Crear una figura con dos subplots: uno para el histograma y otro para la tabla
+fig = plt.figure(figsize=(14, 8))
+gs = fig.add_gridspec(1, 2, width_ratios=[1, 1])
+
+# Subplot para el histograma
+ax1 = fig.add_subplot(gs[0])
+ax1.hist(datos, bins=50, alpha=0.6, color='b', density=True)
+ax1.set_title("Distribución de los valores generados")
+ax1.set_xlabel("x")
+ax1.set_ylabel("Frecuencia")
+
+# Subplot para la tabla de resultados
+ax2 = fig.add_subplot(gs[1])
+ax2.axis('off')  # Ocultar ejes
+
+# Datos para la tabla
+tabla_datos = [
+    ["Integral de f(x)", ""],
+    ["Límite inferior a", f"{a}"],
+    ["Límite superior b", f"{b}"],
+    ["Muestras", f"{n}"],
+    ["Confianza", f"{confianza}"],
+    ["Valor z", f"{z:.4f}"],
+    ["", ""],
+    ["Media muestral", f"{media:.6f}"],
+    ["Estimación por Monte Carlo", f"{integral:.6f}"],
+    ["Valor exacto de la integral", f"{integral_exacta:.6f}"],
+    ["Error absoluto", f"{abs(integral - integral_exacta):.6f}"],
+    ["Desviación estándar", f"{desv_estandar:.6f}"],
+    ["Varianza", f"{varianza:.6f}"],
+    ["Error estándar", f"{error_estandar:.6f}"],
+    ["Intervalo de confianza del " + f"{confianza*100}%", f"[{integral - z * error_estandar:.6f}, {integral + z * error_estandar:.6f}]"],
+    ["Valor mínimo generado", f"{np.min(datos):.6f}"],
+    ["Valor máximo generado", f"{np.max(datos):.6f}"]
+]
+
+# Crear la tabla
+tabla = ax2.table(
+    cellText=tabla_datos,
+    loc='center',
+    cellLoc='left',
+    colWidths=[0.5, 0.5]
+)
+
+# Dar formato a la tabla
+tabla.auto_set_font_size(False)
+tabla.set_fontsize(10)
+tabla.scale(1, 1.5)  # Ajustar el tamaño de la tabla
+
+# Añadir una línea de separación después del encabezado
+for i in range(len(tabla_datos)):
+    if i == 6:  # Después de la fila de separación
+        for j in range(2):
+            celda = tabla[i, j]
+            celda.set_text_props(weight='bold')
+    elif i == 0:  # Título
+        for j in range(2):
+            celda = tabla[i, j]
+            celda.set_text_props(weight='bold')
+
+plt.tight_layout()
 plt.show()
- 
-#integral estimada
-print("=========================================================================")
-print(f"Integral de f(x)")
-print(f"Limite inferior a:{a}")
-print(f"limite superior b:{b}")
-print(f"muestras: {n}")
-print(f"confianza: {confianza}")
-print(f"z: {z}")
-print("=========================================================================")
- 
-# Mostrar resultados mejorados
-print(f"\nMedia muestral: {media}")
-print(f"Estimación por Monte Carlo: {integral}")
-print(f"Valor exacto de la integral: {integral_exacta}")
-print(f"Error absoluto: {abs(integral - integral_exacta)}")
-print(f"Desviación estándar: {desv_estandar}")
-print(f"Varianza: {varianza}")
-print(f"Error estándar: {error_estandar}")
-print(f"Intervalo de confianza del {confianza*100}%: [{integral - z * error_estandar}, {integral + z * error_estandar}]")
-print(f"Valor mínimo generado: {np.min(datos)}")
-print(f"Valor máximo generado: {np.max(datos)}")
- 
+
+# Valores de referencia para z según nivel de confianza
 # 99,5% = 2,807
 # 99% = 2,576
 # 97% = 2,968
