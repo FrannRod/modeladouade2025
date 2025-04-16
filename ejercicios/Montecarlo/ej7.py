@@ -17,7 +17,8 @@ def obtener_valor_z(confianza):
     return norm.ppf((1 + confianza) / 2)
 
 # Fijar la semilla para reproducibilidad
-np.random.seed(0)
+semilla = 0
+np.random.seed(semilla)
  
 # Definir la función a evaluar (función de dos variables)
 def f(x, y):
@@ -67,6 +68,7 @@ ax2.axis('off')  # Ocultar ejes
 # Crear los datos para la tabla
 tabla_datos = [
     ["Integral doble de f(x,y)", ""],
+    ["Semilla", f"{semilla}"],
     [f"Límites para x", f"[{x_min}, {x_max}]"],
     [f"Límites para y", f"[{y_min}, {y_max}]"],
     [f"Volumen", f"{volumen:.6f}"],
