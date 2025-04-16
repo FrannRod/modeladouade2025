@@ -24,13 +24,13 @@ def f(x):
     return 1/(x*x+1)
  
 # Número de puntos aleatorios
+a, b = 0, 1
 n = 5000
+confianza = 0.95
  
 # Generar números aleatorios en el intervalo [0, π]
-a, b = 0, 1
 datos = np.random.uniform(a, b, n)
 volumen = b - a
-confianza = 0.95
  
 # Evaluar los puntos en la función
 evaluados = f(datos)
