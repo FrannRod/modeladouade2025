@@ -20,13 +20,13 @@ np.random.seed(0)
  
 # Definir la función a evaluar
 def f(x):
-    return np.sin(x)
+    return 1/(x*x+1)
  
 # Número de puntos aleatorios
-n = 10000
+n = 5000
  
 # Generar números aleatorios en el intervalo [0, π]
-a, b = 0, np.pi
+a, b = 0, 1
 datos = np.random.uniform(a, b, n)
 volumen = b - a
 confianza = 0.95
@@ -107,11 +107,3 @@ for i in range(len(tabla_datos)):
 
 plt.tight_layout()
 plt.show()
-
-# Valores de referencia para z según nivel de confianza
-# 99,5% = 2,807
-# 99% = 2,576
-# 97% = 2,968
-# 95% = 1,96
-# 90% = 1,645
-# 80% = 1,282
