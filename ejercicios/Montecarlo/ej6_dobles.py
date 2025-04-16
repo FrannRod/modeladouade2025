@@ -49,44 +49,61 @@ z = obtener_valor_z(confianza)
 # Calcular la integral exacta para comparar
 integral_exacta, _ = dblquad(lambda y, x: f(x, y), x_min, x_max, lambda x: y_min, lambda x: y_max)
  
-# Visualización de resultados en 3D
-fig = plt.figure(figsize=(10, 8))
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(x, y, evaluados, c=evaluados, cmap='viridis', alpha=0.6, s=10)
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('f(X,Y)')
-ax.set_title("Distribución de los valores generados")
+# Crear una figura con dos subplots: uno para el gráfico 3D y otro para la tabla
+fig = plt.figure(figsize=(18, 10))
+
+# Gráfico 3D
+ax1 = fig.add_subplot(121, projection='3d')
+scatter = ax1.scatter(x, y, evaluados, c=evaluados, cmap='viridis', alpha=0.6, s=10)
+ax1.set_xlabel('X')
+ax1.set_ylabel('Y')
+ax1.set_zlabel('f(X,Y)')
+ax1.set_title("Distribución de los valores generados")
+
+# Tabla de resultados
+ax2 = fig.add_subplot(122)
+ax2.axis('off')  # Ocultar ejes
+
+# Crear los datos para la tabla
+tabla_datos = [
+    ["Integral doble de f(x,y)", ""],
+    [f"Límites para x", f"[{x_min}, {x_max}]"],
+    [f"Límites para y", f"[{y_min}, {y_max}]"],
+    [f"Volumen", f"{volumen:.6f}"],
+    [f"Muestras", f"{n}"],
+    [f"Confianza", f"{confianza:.2f}"],
+    [f"z", f"{z:.6f}"],
+    ["", ""],
+    [f"Media muestral", f"{media:.6f}"],
+    [f"Estimación por Monte Carlo", f"{integral:.6f}"],
+    [f"Valor exacto de la integral", f"{integral_exacta:.6f}"],
+    [f"Error absoluto", f"{abs(integral - integral_exacta):.6f}"],
+    [f"Desviación estándar", f"{desv_estandar:.6f}"],
+    [f"Varianza", f"{varianza:.6f}"],
+    [f"Error estándar", f"{error_estandar:.6f}"],
+    [f"Intervalo de confianza del {confianza*100}%", f"[{integral - z * error_estandar:.6f}, {integral + z * error_estandar:.6f}]"],
+    [f"Valor mínimo generado en x", f"{np.min(x):.6f}"],
+    [f"Valor máximo generado en x", f"{np.max(x):.6f}"],
+    [f"Valor mínimo generado en y", f"{np.min(y):.6f}"],
+    [f"Valor máximo generado en y", f"{np.max(y):.6f}"]
+]
+
+# Crear la tabla
+tabla = ax2.table(
+    cellText=tabla_datos,
+    cellLoc='left',
+    loc='center',
+    colWidths=[0.5, 0.5]
+)
+
+# Ajustar el estilo de la tabla
+tabla.auto_set_font_size(False)
+tabla.set_fontsize(10)
+tabla.scale(1.2, 1.5)
+
+# Añadir un título a la tabla
+ax2.set_title("Resultados de la Integración por Monte Carlo", pad=20, fontsize=14)
+
+# Ajustar el layout y mostrar la figura
+plt.tight_layout()
 plt.show()
- 
-# Integral estimada
-print("=========================================================================")
-print(f"Integral doble de f(x,y)")
-print(f"Límites para x: [{x_min}, {x_max}]")
-print(f"Límites para y: [{y_min}, {y_max}]")
-print(f"Volumen: {volumen}")
-print(f"Muestras: {n}")
-print(f"Confianza: {confianza}")
-print(f"z: {z}")
-print("=========================================================================")
- 
-# Mostrar resultados mejorados
-print(f"\nMedia muestral: {media}")
-print(f"Estimación por Monte Carlo: {integral}")
-print(f"Valor exacto de la integral: {integral_exacta}")
-print(f"Error absoluto: {abs(integral - integral_exacta)}")
-print(f"Desviación estándar: {desv_estandar}")
-print(f"Varianza: {varianza}")
-print(f"Error estándar: {error_estandar}")
-print(f"Intervalo de confianza del {confianza*100}%: [{integral - z * error_estandar}, {integral + z * error_estandar}]")
-print(f"Valor mínimo generado en x: {np.min(x)}")
-print(f"Valor máximo generado en x: {np.max(x)}")
-print(f"Valor mínimo generado en y: {np.min(y)}")
-print(f"Valor máximo generado en y: {np.max(y)}")
- 
-# 99,5% = 2,807
-# 99% = 2,576
-# 97% = 2,968
-# 95% = 1,96
-# 90% = 1,645
-# 80% = 1,282
