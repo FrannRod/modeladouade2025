@@ -16,7 +16,8 @@ def obtener_valor_z(confianza):
     return norm.ppf((1 + confianza) / 2)
 
 # Fijar la semilla para reproducibilidad
-np.random.seed(0)
+semilla = 0
+np.random.seed(semilla)
  
 # Definir la función a evaluar
 def f(x):
@@ -63,6 +64,7 @@ ax2.axis('off')  # Ocultar ejes
 # Datos para la tabla
 tabla_datos = [
     ["Integral de f(x)", ""],
+    ["Semilla", f"{semilla}"],
     ["Límite inferior a", f"{a}"],
     ["Límite superior b", f"{b}"],
     ["Muestras", f"{n}"],
