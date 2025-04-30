@@ -138,3 +138,40 @@ def diferencias_divididas(puntos):
     encabezados = ["x", "f(x)", "f'(x)", "f''(x)"]
     imprimir_tabla(salida, encabezados)
     return salida
+
+def puntoFijoAitken(funcion, x0, tolerancia):
+    """
+    Método del punto fijo con aceleración de Aitken.
+    funcion: función g para iterar x_{n+1} = g(x_n)
+    x0: aproximación inicial
+    tolerancia: criterio de convergencia basado en |x_n* - x_n|
+    """
+    iteracion = 0
+    resultados = []
+    x_n = x0
+
+    # Iteración 0: calculamos g(x_n) y g(g(x_n))
+    g1 = funcion(x_n)
+    g2 = funcion(g1)
+    # Aplicamos fórmula de Aitken: x_n* = x_n − (g1−x_n)^2 / (g2 − 2·g1 + x_n)
+    denom = g2 - 2*g1 + x_n
+    x_acel = x_n - (g1 - x_n)**2/denom if denom != 0 else g2
+    error = abs(x_acel - x_n)
+    resultados.append((iteracion, x_n, g1, g2, x_acel, error))
+
+    # Repetimos hasta que el error sea menor a la tolerancia
+    while error > tolerancia:
+        iteracion += 1
+        x_n = x_acel
+        g1 = funcion(x_n)
+        g2 = funcion(g1)
+        denom = g2 - 2*g1 + x_n
+        x_acel = x_n - (g1 - x_n)**2/denom if denom != 0 else g2
+        error = abs(x_acel - x_n)
+        resultados.append((iteracion, x_n, g1, g2, x_acel, error))
+
+    # Imprimir la tabla de iteraciones
+    encabezados = ["Iteración", "x_n", "g(x_n)", "g(g(x_n))", "x_n*", "|x_n* - x_n|"]
+    imprimir_tabla(resultados, encabezados)
+
+    return x_acel, iteracion
