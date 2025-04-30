@@ -1,5 +1,8 @@
 # Excel: https://docs.google.com/spreadsheets/d/1rGGEn5q6vxpWB-VxgVrD6tpfbcpYYU5QQb94Eb6QJLY/edit?usp=sharing
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 def imprimir_tabla(resultados, encabezados):
     # Ancho fijo para cada tipo de columna
     ANCHO_ITERACION = 9
@@ -175,3 +178,46 @@ def puntoFijoAitken(funcion, x0, tolerancia):
     imprimir_tabla(resultados, encabezados)
 
     return x_acel, iteracion
+
+def lagrange(x_puntos, y_puntos, num_puntos=400):
+    """
+    Interpolación de Lagrange en una sola función:
+    - Calcula coeficientes del polinomio que interpola los puntos.
+    - Grafica los puntos y el polinomio.
+    - Imprime el polinomio final.
+    """
+    # Cantidad de puntos y arreglo para coeficientes
+    n = len(x_puntos)
+    coeficientes = np.zeros(n)
+
+    # Construir y acumular cada término base de Lagrange
+    for i in range(n):
+        # polinomio base Li(x) = ∏_{j≠i} (x - x_j)/(x_i - x_j)
+        Li = np.poly1d([1])
+        for j in range(n):
+            if i != j:
+                Li *= np.poly1d([1, -x_puntos[j]]) / (x_puntos[i] - x_puntos[j])
+        # sumar contribución del punto i
+        coeficientes += y_puntos[i] * Li.coefficients
+
+    # Crear el polinomio completo
+    poli = np.poly1d(coeficientes)
+
+    # Valores para graficar
+    x = np.linspace(min(x_puntos), max(x_puntos), num_puntos)
+    y = poli(x)
+
+    # Graficar
+    plt.scatter(x_puntos, y_puntos, color='red', label='Puntos dados')
+    plt.plot(x, y, label='Polinomio de Lagrange')
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Interpolación de Lagrange')
+    plt.grid(True)
+    plt.show()
+
+    # Mostrar polinomio reconstruido
+    print(f"El polinomio de Lagrange es:\n{poli}")
+
+    return poli
