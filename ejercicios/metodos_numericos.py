@@ -29,7 +29,7 @@ def imprimir_tabla(resultados, encabezados):
             elif valor == "-":
                 fila.append(str(valor).center(anchos[i]))
             else:  # Valores numéricos
-                fila.append(format(valor, '.16f').ljust(anchos[i]))
+                fila.append(format(valor, '.8f').ljust(anchos[i]))
         print(" | ".join(fila))
 
 def binario(funcion, rangoA, rangoB, tolerancia):
@@ -92,7 +92,6 @@ def puntoFijo(funcion, x, tolerancia):
     imprimir_tabla(resultados, encabezados)
     
     return x, iteracion 
-
 def newtonRaphson(funcion, derivada, x, tolerancia):
     iteracion = 0
     resultados = []
@@ -100,7 +99,9 @@ def newtonRaphson(funcion, derivada, x, tolerancia):
     # Agregar iteración 0
     fx = funcion(x)
     derivadaX = derivada(x)
-    resultados.append((iteracion, x, fx, derivadaX, "-", "-"))  # Error inicial es 0
+    cociente = fx/derivadaX if derivadaX != 0 else "-"
+    proximo_punto = x - cociente if derivadaX != 0 else "-"
+    resultados.append((iteracion, x, fx, derivadaX, cociente, proximo_punto, "-", "-"))  # Error inicial es 0
     x_anterior = x
     
     while abs(fx) > tolerancia:
@@ -108,12 +109,14 @@ def newtonRaphson(funcion, derivada, x, tolerancia):
         x_nuevo = x - fx/derivadaX
         fx = funcion(x_nuevo)
         derivadaX = derivada(x_nuevo)
+        cociente = fx/derivadaX if derivadaX != 0 else "-"
+        proximo_punto = x_nuevo - cociente if derivadaX != 0 else "-"
         error_absoluto = abs(x_nuevo - x)  # Calculamos el error absoluto
         error_relativo = abs(error_absoluto / x_nuevo) if x_nuevo != 0 else "-"  # Error relativo
-        resultados.append((iteracion, x_nuevo, fx, derivadaX, error_absoluto, error_relativo))
+        resultados.append((iteracion, x_nuevo, fx, derivadaX, cociente, proximo_punto, error_absoluto, error_relativo))
         x = x_nuevo
         
-    encabezados = ["Iteración", "x", "f(x)", "f'(x)", "Error Absoluto", "Error Relativo"]
+    encabezados = ["Iteración", "x", "f(x)", "f'(x)", "f(x)/f'(x)", "x_n+1", "Error Absoluto", "Error Relativo"]
     imprimir_tabla(resultados, encabezados)
     return x, iteracion
 
