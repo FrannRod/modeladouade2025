@@ -1,42 +1,76 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 
 def euler(f, y0, t0, tf, h):
-    t_values = np.arange(t0, tf + h, h)
-    y_values = np.zeros(len(t_values))
-    y_values[0] = y0
-    for i in range(1, len(t_values)):
-        y_values[i] = y_values[i - 1] + h * f(t_values[i - 1], y_values[i - 1])
-    return t_values, y_values
+    t = np.arange(t0, tf + h, h)
+    y = np.zeros_like(t)
+    y[0] = y0
+    for i in range(len(t) - 1):
+        y[i + 1] = y[i] + h * f(t[i], y[i])
+    return t, y
 
+def euler_mejorado(f, y0, t0, tf, h):
+    t = np.arange(t0, tf + h, h)
+    y = np.zeros_like(t)
+    y[0] = y0
+    for i in range(len(t) - 1):
+        y_pred = y[i] + h * f(t[i], y[i])
+        y[i + 1] = y[i] + h * (f(t[i], y[i]) + f(t[i + 1], y_pred)) / 2
+    return t, y
+
+def runge_kutta_4(f, y0, t0, tf, h):
+    t = np.arange(t0, tf + h, h)
+    y = np.zeros_like(t)
+    y[0] = y0
+    for i in range(len(t) - 1):
+        t_n = t[i]
+        y_n = y[i]
+        k1 = f(t_n, y_n)
+        k2 = f(t_n + h/2, y_n + h/2 * k1)
+        k3 = f(t_n + h/2, y_n + h/2 * k2)
+        k4 = f(t_n + h, y_n + h * k3)
+        y[i + 1] = y_n + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
+    return t, y
+
+# Ecuación diferencial: dy/dt = 0.4 * t * y
 def f(t, y):
-    return t + y
+    return 0.4 * t * y
 
-def solucion_particular(t):
-    return -t - 1 + 2 * np.exp(t)
+# Solución exacta
+def sol_exacta(y0, t):
+    return (1 / np.exp(0.2)) * np.exp(0.2 * t**2)
 
-# Condiciones iniciales y parámetros
-y0, t0, tf, h = 1, 0, 1, 0.1
+# Parámetros
+y0, t0, tf, h = 1, 1, 2, 0.1
 
-# Soluciones
-t_euler, y_euler = euler(f, y0, t0, tf, h)
-y_real = solucion_particular(t_euler)
+# Cálculo de soluciones
+t, y_euler = euler(f, y0, t0, tf, h)
+_, y_eul_mej = euler_mejorado(f, y0, t0, tf, h)
+_, y_rk4 = runge_kutta_4(f, y0, t0, tf, h)
+y_real = sol_exacta(y0, t)
 
-# Crear DataFrame
-resultados = pd.DataFrame({
-    'Tiempo': t_euler,
+# Crear tabla resumen
+tabla = pd.DataFrame({
+    'Tiempo': t,
+    'Exacta': y_real,
     'Euler': y_euler,
-    'Solución Real': y_real
+    'Euler Mejorado': y_eul_mej,
+    'Runge-Kutta 4': y_rk4
 })
 
-print(resultados)
+print(tabla)
 
 # Graficar resultados
-plt.plot(t_euler, y_euler, label='Euler')
-plt.plot(t_euler, y_real, label='Solución Real')
-plt.xlabel('Tiempo')
-plt.ylabel('Valor de y')
+plt.figure(figsize=(10, 6))
+plt.plot(t, y_real, label="Solución Exacta", color="blue", linestyle="-", linewidth=2)
+plt.plot(t, y_euler, label="Euler", color="red", linestyle="dotted", linewidth=2, marker="o")
+plt.plot(t, y_eul_mej, label="Euler Mejorado", color="green", linestyle="dashdot", linewidth=2, marker="d")
+plt.plot(t, y_rk4, label="Runge-Kutta 4", color="purple", linestyle="--", linewidth=2, marker="s")
+
+plt.xlabel("Tiempo")
+plt.ylabel("Solución y")
+plt.title("Comparación de Métodos Numéricos para EDO")
 plt.legend()
-plt.title('Métodos de Euler, Euler Mejorado y Solución Real')
+plt.grid()
 plt.show()
