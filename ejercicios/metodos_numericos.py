@@ -192,15 +192,22 @@ def lagrange(x_puntos, y_puntos, num_puntos=400):
     # Cantidad de puntos y arreglo para coeficientes
     n = len(x_puntos)
     coeficientes = np.zeros(n)
-
-    # Construir y acumular cada término base de Lagrange
+    print("Construcción del polinomio de Lagrange paso a paso:\n")
     for i in range(n):
-        # polinomio base Li(x) = ∏_{j≠i} (x - x_j)/(x_i - x_j)
         Li = np.poly1d([1])
+        denominador = 1
+        print(f"Término {i}:")
+        print(f"  y_{i} = {y_puntos[i]}")
+        print(f"  L_{i}(x) = ", end="")
+        factores = []
         for j in range(n):
             if i != j:
+                factor = f"(x - {x_puntos[j]})/({x_puntos[i]} - {x_puntos[j]})"
+                factores.append(factor)
                 Li *= np.poly1d([1, -x_puntos[j]]) / (x_puntos[i] - x_puntos[j])
-        # sumar contribución del punto i
+        print(" * ".join(factores))
+        print(f"  L_{i}(x) expandido: {Li}")
+        print(f"  Término completo: {y_puntos[i]} * L_{i}(x)\n")
         coeficientes += y_puntos[i] * Li.coefficients
 
     # Crear el polinomio completo
