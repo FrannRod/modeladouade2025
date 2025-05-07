@@ -24,13 +24,11 @@ def runge_kutta_4(f, y0, t0, tf, h):
     y = np.zeros_like(t)
     y[0] = y0
     for i in range(len(t) - 1):
-        t_n = t[i]
-        y_n = y[i]
-        k1 = f(t_n, y_n)
-        k2 = f(t_n + h/2, y_n + h/2 * k1)
-        k3 = f(t_n + h/2, y_n + h/2 * k2)
-        k4 = f(t_n + h, y_n + h * k3)
-        y[i + 1] = y_n + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
+        k1 = f(t[i], y[i])
+        k2 = f(t[i] + h/2, y[i] + h*k1/2)
+        k3 = f(t[i] + h/2, y[i] + h*k2/2)
+        k4 = f(t[i] + h, y[i] + h*k3)
+        y[i+1] = y[i] + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
     return t, y
 
 # Ecuación diferencial: dy/dt = 0.4 * t * y
