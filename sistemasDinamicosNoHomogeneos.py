@@ -3,22 +3,19 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 import inspect
 
-# ========== 1. Definición del sistema ==========
-A = np.array([[-1, 0],
-              [0, -2]], dtype=float)
+A = np.array([[1, 2],
+              [0, -1]], dtype=float)
 
-def b(t): # Cambiá esta función a gusto
-    array = [t, -t]
-    return np.array(array, dtype=float)
+def b(t):
+    return np.array([t, -t], dtype=float)
 
 def get_b_str(bfunc):
     src = inspect.getsource(bfunc).strip()
     for line in src.split('\n'):
-        if 'array = ' in line:
-            return line.replace('array = ', '').strip()
+        if 'return' in line:
+            return line.strip().replace('return np.array(', '').replace(', dtype=float)', '')
     return "b(t)"
 
-# ========== 2. Sistema homogéneo ==========
 determinante = np.linalg.det(A)
 traza = np.trace(A)
 discriminante = traza**2 - 4*determinante
@@ -44,99 +41,98 @@ def sistema_homogeneo(t, X):
 def sistema_no_homogeneo(t, X):
     return A @ X + b(t)
 
-# --- Ajuste del zoom y puntos iniciales ---
+# Seteo de condiciones iniciales: cercanas al origen y sobre los autovectores
+init_points = []
+radii = np.linspace(-1.2, 1.2, 7)
+for r in radii:
+    init_points.append([r, 0])
+    init_points.append([0, r])
+    # agrego sobre autovectores (normalizados)
+    v1 = autovectores[:,0] / np.linalg.norm(autovectores[:,0])
+    v2 = autovectores[:,1] / np.linalg.norm(autovectores[:,1])
+    init_points.append(r * v1)
+    init_points.append(r * v2)
+
 zoom = 3
-x1 = np.linspace(-zoom, zoom, 20)
-x2 = np.linspace(-zoom, zoom, 20)
+x1 = np.linspace(-zoom, zoom, 22)
+x2 = np.linspace(-zoom, zoom, 22)
 X1, X2 = np.meshgrid(x1, x2)
 
-fig, axs = plt.subplots(1,2, figsize=(14,7))
+fig, axs = plt.subplots(1, 2, figsize=(13,8))
 
-# ========== 3. Diagrama de fases (homogéneo) ==========
+# ---- Gráfico homogéneo ----
 ax = axs[0]
-ax.set_title(
-    f"Sistema homogéneo\nx' = {A[0,0]}x + {A[0,1]}y\ny' = {A[1,0]}x + {A[1,1]}y",
-    pad=15)
+ax.set_title(f"Sistema homogéneo\nx' = {A[0,0]}x + {A[0,1]}y\ny' = {A[1,0]}x + {A[1,1]}y", pad=12)
 U = A[0,0]*X1 + A[0,1]*X2
 V = A[1,0]*X1 + A[1,1]*X2
 ax.quiver(X1, X2, U, V, color='gray', alpha=0.5)
 ax.set_xlabel("x")
 ax.set_ylabel("y")
 
-# Trayectorias cerca del origen:
-init_points = []
-r = np.linspace(-2, 2, 7)
-for v in r:
-    init_points += [(v, 0), (0, v), (v, v)]
-init_points += [(-1, 1), (1, -1), (-1, -1), (1, 1)]
-
+# Trajectorias: solo en rango [0, 2] para evitar desbordes
+t_span = [0, 2]
 for x0 in init_points:
-    sol = solve_ivp(sistema_homogeneo, [0, 3], x0, t_eval=np.linspace(0,3,200))
-    ax.plot(sol.y[0], sol.y[1], linewidth=1.1)
-eq_hom, = ax.plot(0, 0, 'ro', markersize=8, label="Punto de equilibrio")
-ax.grid(alpha=0.3)
+    sol = solve_ivp(sistema_homogeneo, t_span, x0, t_eval=np.linspace(*t_span, 250))
+    ax.plot(sol.y[0], sol.y[1], linewidth=1.0, alpha=0.9)
+ax.plot(0, 0, 'ro', markersize=8, label="Punto de equilibrio")
+
+# Autovectores normalizados, largos = 1
+for i, color in enumerate(['blue', 'green']):
+    vec = autovectores[:, i]
+    vec_norm = vec / np.linalg.norm(vec)
+    ax.arrow(0, 0, vec_norm[0], vec_norm[1],
+             color=color, head_width=0.15, head_length=0.23, linewidth=2.2, length_includes_head=True)
+    ax.text(vec_norm[0]*1.1, vec_norm[1]*1.1, f'v{i+1}', fontsize=12, color=color, fontweight='bold')
+
 ax.set_xlim(-zoom, zoom)
 ax.set_ylim(-zoom, zoom)
+ax.grid(alpha=0.3)
 ax.legend(loc='upper right', fontsize=9)
 
-# ========== 4. Sistema no homogéneo ==========
+# ---- Gráfico no homogéneo ----
 ax = axs[1]
 b_str = get_b_str(b)
-ax.set_title(
-    f"Sistema no homogéneo\nx' = {A[0,0]}x + {A[0,1]}y + {b_str}\ny' = {A[1,0]}x + {A[1,1]}y",
-    pad=15)
+ax.set_title(f"Sistema no homogéneo\nx' = {A[0,0]}x + {A[0,1]}y + {b_str}\ny' = {A[1,0]}x + {A[1,1]}y", pad=12)
 U = A[0,0]*X1 + A[0,1]*X2 + b(0)[0]
 V = A[1,0]*X1 + A[1,1]*X2 + b(0)[1]
 ax.quiver(X1, X2, U, V, color='gray', alpha=0.5)
 ax.set_xlabel("x")
 ax.set_ylabel("y")
 
+# Trayectorias del no homogéneo, también en rango corto
 for x0 in init_points:
-    sol = solve_ivp(sistema_no_homogeneo, [0, 3], x0, t_eval=np.linspace(0,3,200))
-    ax.plot(sol.y[0], sol.y[1], linewidth=1.1)
+    sol = solve_ivp(sistema_no_homogeneo, t_span, x0, t_eval=np.linspace(*t_span, 250))
+    ax.plot(sol.y[0], sol.y[1], linewidth=1.0, alpha=0.9)
 
-# Aviso: no hay punto de equilibrio fijo para b(t) no constante
-ax.annotate("Sin punto de equilibrio fijo\n(b depende de t)",
-            xy=(ax.get_xlim()[0]+0.1, ax.get_ylim()[1]-0.5),
-            color='red',
-            fontsize=9,
-            ha='left', va='top',
-            bbox=dict(facecolor='white', alpha=0.85, edgecolor='red'))
-
-# ========== 5. Neclinas (en t=0, sólo como referencia visual) ==========
+# Neclinas (t=0)
 x_vals = np.linspace(-zoom, zoom, 400)
-handles = []
-labels = []
-
 if A[0,1] != 0:
     y_neclina_x = (-A[0,0]*x_vals - b(0)[0])/A[0,1]
-    neclina_x, = ax.plot(x_vals, y_neclina_x, 'g--', label="Neclina x'", linewidth=1.2)
-    handles.append(neclina_x)
-    labels.append("Neclina x'")
+    ax.plot(x_vals, y_neclina_x, 'g--', label="Neclina x'", linewidth=1.3)
 if A[1,1] != 0:
     y_neclina_y = (-A[1,0]*x_vals - b(0)[1])/A[1,1]
-    neclina_y, = ax.plot(x_vals, y_neclina_y, 'b--', label="Neclina y'", linewidth=1.5)
-    handles.append(neclina_y)
-    labels.append("Neclina y'")
+    ax.plot(x_vals, y_neclina_y, 'b--', label="Neclina y'", linewidth=1.3)
 
 ax.set_xlim(-zoom, zoom)
 ax.set_ylim(-zoom, zoom)
-if handles:
-    ax.legend(handles, labels, loc='upper right', fontsize=9)
 ax.grid(alpha=0.3)
+ax.legend(loc='upper right', fontsize=10)
+ax.annotate("Sin punto de equilibrio fijo\n(b depende de t)",
+            xy=(ax.get_xlim()[0]+0.1, ax.get_ylim()[1]-0.5),
+            color='red', fontsize=9,
+            ha='left', va='top',
+            bbox=dict(facecolor='white', alpha=0.8, edgecolor='red'))
 
-# ========== 6. Texto informativo ==========
+# ---- Texto informativo ----
 info_text = (
     f"Matriz A = {A.tolist()}\n"
-    f"Determinante: {determinante:.3f} | "
-    f"Traza (Tau): {traza:.3f} | "
-    f"Discriminante: {discriminante:.3f}\n"
+    f"Determinante: {determinante:.3f} | Traza (Tau): {traza:.3f} | Discriminante: {discriminante:.3f}\n"
     f"Autovalores: {np.round(autovalores,3)}\n"
     f"Tipo de sistema: {tipo}\n"
     f"b(t) = {b_str}\n"
-    f"Punto de equilibrio sistema no homogéneo: NO EXISTE, b(t) depende de t"
+    "Punto de equilibrio sistema no homogéneo: NO EXISTE, b(t) depende de t"
 )
-fig.text(0.5, 0.05, info_text, ha='center', va='center', fontsize=10, family='monospace', bbox=dict(facecolor='white', alpha=0.93, edgecolor='gray'))
+fig.text(0.5, 0.02, info_text, ha='center', va='bottom', fontsize=10, family='monospace', bbox=dict(facecolor='white', alpha=0.95, edgecolor='gray'))
 
-plt.subplots_adjust(bottom=0.18, wspace=0.27, right=0.95)
+plt.subplots_adjust(bottom=0.19, wspace=0.23, right=0.97, top=0.93)
 plt.show()
