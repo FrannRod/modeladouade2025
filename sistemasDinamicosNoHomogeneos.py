@@ -8,15 +8,14 @@ A = np.array([[-1, 0],
               [0, -2]], dtype=float)
 
 def b(t): # Cambiá esta función a gusto
-    return np.array([np.cos(t), 0], dtype=float)
+    array = [t, -t]
+    return np.array(array, dtype=float)
 
-# Función para mostrar b(t) como string en el título:
 def get_b_str(bfunc):
     src = inspect.getsource(bfunc).strip()
-    # Intenta detectar rápidamente la línea relevante
     for line in src.split('\n'):
-        if 'return' in line:
-            return line.replace('return', '').strip()
+        if 'array = ' in line:
+            return line.replace('array = ', '').strip()
     return "b(t)"
 
 # ========== 2. Sistema homogéneo ==========
