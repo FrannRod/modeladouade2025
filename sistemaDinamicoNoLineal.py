@@ -4,16 +4,16 @@ import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 
-# 1. Definí tu sistema en un solo lugar
-#    Reemplazá estas dos líneas si querés otro sistema.
+# 1. Definí tu sistema en un solo lugar.
+#    Si querés estudiar otro sistema, solo cambiá estas dos líneas:
 x_sym, y_sym = sp.symbols('x y', real=True)
 ecu1 = x_sym*(2 - x_sym - y_sym)
 ecu2 = y_sym*(3 - 2*x_sym - y_sym)
 
-# 2. Calculá puntos de equilibrio resolviendo ecu1=0, ecu2=0
+# 2. Calculá puntos de equilibrio (ecu1 = 0, ecu2 = 0)
 sols = sp.solve([ecu1, ecu2], [x_sym, y_sym], dict=True)
 
-# 3. Armá la matriz jacobiana y clasificá cada punto
+# 3. Armá la matriz Jacobiana y sacá autovalores/autovectores
 jacob = sp.Matrix([
     [sp.diff(ecu1, x_sym), sp.diff(ecu1, y_sym)],
     [sp.diff(ecu2, x_sym), sp.diff(ecu2, y_sym)]
@@ -23,71 +23,122 @@ def tipo_por_autovals(vals):
     l1, l2 = vals
     r1, r2 = sp.re(l1), sp.re(l2)
     i1, i2 = sp.im(l1), sp.im(l2)
-    if r1*r2 < 0:
-        return "Silla"
+    # Nodo fuente o sumidero
+    if i1 == 0 and i2 == 0:
+        if r1 > 0 and r2 > 0:
+            return "Nodo fuente"
+        if r1 < 0 and r2 < 0:
+            return "Nodo sumidero"
+        if r1 == 0 or r2 == 0:
+            return "Nodo degenerado"
+    # Punto de silla
+    if r1 * r2 < 0:
+        return "Punto de silla"
+    # Centro
     if r1 == 0 and r2 == 0 and (i1 != 0 or i2 != 0):
         return "Centro"
+    # Espiral (foco)
     if i1 != 0 or i2 != 0:
         if r1 < 0 and r2 < 0:
             return "Espiral estable"
         if r1 > 0 and r2 > 0:
             return "Espiral inestable"
         return "Espiral (mixto)"
-    if i1 == 0 and i2 == 0:
-        if r1 < 0 and r2 < 0:
-            return "Nodo estable"
-        if r1 > 0 and r2 > 0:
-            return "Nodo inestable"
-        return "Nodo degenerado"
     return "Indeterminado"
 
 puntos_eq = []
 for s in sols:
     px = s[x_sym]
     py = s[y_sym]
+    # Evaluamos Jacobiana en (px, py) y convertimos a valores numéricos
     J_eval = jacob.subs({x_sym: px, y_sym: py}).evalf()
+    # Sacamos autovalores (con multiplicidad)
+    eigs_dict = J_eval.eigenvals()
     eigs = []
-    for val, mult in J_eval.eigenvals().items():
+    for val, mult in eigs_dict.items():
         for _ in range(int(mult)):
             eigs.append(val)
+    # Sacamos autovectores
+    evects = J_eval.eigenvects()
+    autovs = []
+    for triple in evects:
+        vec_sim = triple[2][0]    # primer autovector de ese autovalor
+        comp0 = complex(vec_sim[0])
+        comp1 = complex(vec_sim[1])
+        norma = np.sqrt(
+            (comp0.real)**2 + (comp0.imag)**2 +
+            (comp1.real)**2 + (comp1.imag)**2
+        )
+        if norma == 0:
+            autovs.append((0.0 + 0.0j, 0.0 + 0.0j))
+        else:
+            autovs.append((comp0 / norma, comp1 / norma))
     tipo = tipo_por_autovals(eigs)
     puntos_eq.append({
         'coords': (sp.N(px), sp.N(py)),
-        'autovals': eigs,
+        'jacobiano': J_eval,
+        'autovalores': eigs,
+        'autovectores': autovs,
         'clasif': tipo
     })
 
-# Armamos el texto con la info de cada punto
-texto = "Puntos de equilibrio y clasificación:\n"
+# 4. Armá el texto para mostrar al costado, con todo en "formato matriz"
+texto = "Puntos de equilibrio y detalle:\n\n"
 for info in puntos_eq:
     px, py = info['coords']
-    av = info['autovals']
-    cadena_autovals = []
-    for a in av:
-        c = complex(a)
-        cadena_autovals.append(f"{c.real:.4f}{c.imag:+.4f}j")
-    texto += f"- ({px:.4f}, {py:.4f}): [{cadena_autovals[0]}, {cadena_autovals[1]}] → {info['clasif']}\n"
+    Jm = info['jacobiano']
+    a11 = float(Jm[0, 0]); a12 = float(Jm[0, 1])
+    a21 = float(Jm[1, 0]); a22 = float(Jm[1, 1])
+    texto += f"• Punto ({px:.4f}, {py:.4f}):\n"
+    # Jacobiano en formato matriz alineada
+    texto += "    Jacobiano =\n"
+    texto += f"      [ {a11:>7.4f}  {a12:>7.4f} ]\n"
+    texto += f"      [ {a21:>7.4f}  {a22:>7.4f} ]\n"
+    # Autovalores y autovectores en bloques horizontales
+    av = info['autovalores']
+    # Como en este caso siempre resultan reales, tomamos solo parte real
+    e1, e2 = float(sp.re(av[0])), float(sp.re(av[1]))
+    e1_str = f"{e1:>7.4f}"
+    e2_str = f"{e2:>7.4f}"
+    # Autovectores (dos vectores columna normalizados)
+    avs = info['autovectores']
+    vx1, vy1 = avs[0]
+    vx2, vy2 = avs[1]
+    # Convertir a float asumiendo que son reales
+    v11 = float(np.real(vx1)); v21 = float(np.real(vy1))
+    v12 = float(np.real(vx2)); v22 = float(np.real(vy2))
+    v11_str = f"{v11:>7.4f}"
+    v21_str = f"{v21:>7.4f}"
+    v12_str = f"{v12:>7.4f}"
+    v22_str = f"{v22:>7.4f}"
+    texto += "    Autovalores =     Autovectores =\n"
+    texto += f"      [ {e1_str} ]         [ {v11_str}  {v12_str} ]\n"
+    texto += f"      [ {e2_str} ]         [ {v21_str}  {v22_str} ]\n"
+    # Clasificación final
+    texto += f"    → Clasificación = {info['clasif']}\n\n"
 
-# 4. Generar versión numérica del campo con lambdify
+# 5. Generar versión numérica del campo con lambdify
 f1_np = sp.lambdify((x_sym, y_sym), ecu1, 'numpy')
 f2_np = sp.lambdify((x_sym, y_sym), ecu2, 'numpy')
 
 def campo(xv, yv):
     return f1_np(xv, yv), f2_np(xv, yv)
 
-# 5. Dibujar diagrama de fases y mostrar la info al costado
+# 6. Dibujar diagrama de fases y cuadro de texto al costado
 limite = 4.0
-puntos = 400
-xs = np.linspace(-limite, limite, puntos)
-ys = np.linspace(-limite, limite, puntos)
+res = 400
+xs = np.linspace(-limite, limite, res)
+ys = np.linspace(-limite, limite, res)
 Xg, Yg = np.meshgrid(xs, ys)
 Ug, Vg = campo(Xg, Yg)
 
-fig = plt.figure(figsize=(10, 6))
+# Usamos GridSpec para aprovechar mejor el espacio horizontal:
+fig = plt.figure(figsize=(12, 6))
+gs = fig.add_gridspec(1, 2, width_ratios=[3, 2], wspace=0.3)
 
-# Gráfico de fase
-ax1 = fig.add_subplot(1, 2, 1)
-ax1.streamplot(Xg, Yg, Ug, Vg, density=1.0, linewidth=0.7, arrowsize=1)
+# Subplot 1: diagrama de fases (más ancho)
+ax1 = fig.add_subplot(gs[0, 0])
+ax1.streamplot(Xg, Yg, Ug, Vg, density=1.1, linewidth=0.7, arrowsize=1)
 for info in puntos_eq:
     px, py = info['coords']
     ax1.plot(float(px), float(py), 'ro')
@@ -102,11 +153,11 @@ ax1.set_xlim(-limite, limite)
 ax1.set_ylim(-limite, limite)
 ax1.set_aspect('equal')
 
-# Cuadro de texto con la información
-ax2 = fig.add_subplot(1, 2, 2)
+# Subplot 2: cuadro de texto con toda la info (monospace para alinear)
+ax2 = fig.add_subplot(gs[0, 1])
 ax2.axis('off')
-caja = dict(boxstyle='round', facecolor='white', alpha=0.6)
-ax2.text(0, 1, texto, fontsize=10, va='top', ha='left', bbox=caja)
+caja = dict(boxstyle='round', facecolor='white', alpha=0.8)
+ax2.text(0, 1, texto, fontsize=9, va='top', ha='left',
+         fontfamily='monospace', bbox=caja)
 
-plt.tight_layout()
 plt.show()
