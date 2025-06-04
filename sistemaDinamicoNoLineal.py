@@ -7,8 +7,11 @@ import matplotlib.pyplot as plt
 # 1. Definí tu sistema en un solo lugar.
 #    Si querés estudiar otro sistema, solo cambiá estas dos líneas:
 x_sym, y_sym = sp.symbols('x y', real=True)
-ecu1 = x_sym*(2 - x_sym - y_sym)
-ecu2 = y_sym*(3 - 2*x_sym - y_sym)
+ecu1 = x_sym*(1- x_sym) - x_sym * y_sym
+ecu2 = x_sym * y_sym - y_sym
+
+# Convertimos las ecuaciones a cadenas para que aparezcan en el gráfico.
+sistema_str = f"x' = {str(ecu1)}\n" + f"y' = {str(ecu2)}"
 
 # 2. Calculá puntos de equilibrio (ecu1 = 0, ecu2 = 0)
 sols = sp.solve([ecu1, ecu2], [x_sym, y_sym], dict=True)
@@ -83,7 +86,9 @@ for s in sols:
     })
 
 # 4. Armá el texto para mostrar al costado, con todo en "formato matriz"
-texto = "Puntos de equilibrio y detalle:\n\n"
+texto = "Sistema dinámico:\n"
+texto += f"  {sistema_str}\n\n"
+texto += "Puntos de equilibrio y detalle:\n\n"
 for info in puntos_eq:
     px, py = info['coords']
     Jm = info['jacobiano']
@@ -96,7 +101,7 @@ for info in puntos_eq:
     texto += f"      [ {a21:>7.4f}  {a22:>7.4f} ]\n"
     # Autovalores y autovectores en bloques horizontales
     av = info['autovalores']
-    # Como en este caso siempre resultan reales, tomamos solo parte real
+    # Tomamos parte real o imaginaria según corresponda
     e1, e2 = float(sp.re(av[0])), float(sp.re(av[1]))
     e1_str = f"{e1:>7.4f}"
     e2_str = f"{e2:>7.4f}"
@@ -104,7 +109,6 @@ for info in puntos_eq:
     avs = info['autovectores']
     vx1, vy1 = avs[0]
     vx2, vy2 = avs[1]
-    # Convertir a float asumiendo que son reales
     v11 = float(np.real(vx1)); v21 = float(np.real(vy1))
     v12 = float(np.real(vx2)); v22 = float(np.real(vy2))
     v11_str = f"{v11:>7.4f}"
@@ -124,7 +128,7 @@ f2_np = sp.lambdify((x_sym, y_sym), ecu2, 'numpy')
 def campo(xv, yv):
     return f1_np(xv, yv), f2_np(xv, yv)
 
-# 6. Dibujar diagrama de fases y cuadro de texto al costado
+# 6. Dibujar diagrama de fases, núclinas y cuadro de texto al costado
 limite = 4.0
 res = 400
 xs = np.linspace(-limite, limite, res)
@@ -138,13 +142,38 @@ gs = fig.add_gridspec(1, 2, width_ratios=[3, 2], wspace=0.3)
 
 # Subplot 1: diagrama de fases (más ancho)
 ax1 = fig.add_subplot(gs[0, 0])
+# Campo vectorial
 ax1.streamplot(Xg, Yg, Ug, Vg, density=1.1, linewidth=0.7, arrowsize=1)
+
+# Núclinas: curvas f1 = 0 (x-núclina) y f2 = 0 (y-núclina)
+# Dibujamos contornos donde Ug = 0 y Vg = 0
+nc1 = ax1.contour(
+    Xg, Yg, Ug,
+    levels=[0], colors='tab:blue', linestyles='--', linewidths=1,
+    alpha=0.8
+)
+nc2 = ax1.contour(
+    Xg, Yg, Vg,
+    levels=[0], colors='tab:green', linestyles='-.', linewidths=1,
+    alpha=0.8
+)
+# Agregamos leyenda manual para núclinas
+nc1_proxy = plt.Line2D([0], [0], color='tab:blue', linestyle='--')
+nc2_proxy = plt.Line2D([0], [0], color='tab:green', linestyle='-.')
+ax1.legend(
+    [nc1_proxy, nc2_proxy],
+    ["x-núclina (f1=0)", "y-núclina (f2=0)"],
+    loc='upper right', fontsize=8, framealpha=0.7
+)
+
+# Marcamos y etiquetamos cada punto de equilibrio
 for info in puntos_eq:
     px, py = info['coords']
     ax1.plot(float(px), float(py), 'ro')
     ax1.text(float(px) + 0.05, float(py) + 0.05, info['clasif'],
              color='r', fontsize=8)
-ax1.set_title("Diagrama de fases")
+
+ax1.set_title("Diagrama de fases con núclinas")
 ax1.set_xlabel("x")
 ax1.set_ylabel("y")
 ax1.axhline(0, color='k', linewidth=0.5)
@@ -157,7 +186,10 @@ ax1.set_aspect('equal')
 ax2 = fig.add_subplot(gs[0, 1])
 ax2.axis('off')
 caja = dict(boxstyle='round', facecolor='white', alpha=0.8)
-ax2.text(0, 1, texto, fontsize=9, va='top', ha='left',
-         fontfamily='monospace', bbox=caja)
+ax2.text(
+    0, 1, texto,
+    fontsize=9, va='top', ha='left',
+    fontfamily='monospace', bbox=caja
+)
 
 plt.show()
